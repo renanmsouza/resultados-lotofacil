@@ -23,11 +23,16 @@ export class ResultadosController {
     @Patch('atualizar')
     public async atualizar(): Promise<string> {
         try {
+            var concurso: number = 0;
             const ultimoGravado = await this.resultadosService.findLast();
             const ultimoConcurso = await this.lotofacilService.ultimoConcurso();
 
-            if (ultimoGravado.concurso < ultimoConcurso) {
-                var proximoConcurso = ultimoGravado.concurso.valueOf() + 1;
+            if (ultimoGravado) {
+                concurso = ultimoGravado.concurso;    
+            }
+    
+            if ((concurso < ultimoConcurso) || (concurso > 0)) {
+                var proximoConcurso = concurso + 1;
 
                 while (proximoConcurso < ultimoConcurso) {
                     let novoConcurso = await this.lotofacilService.findOne(proximoConcurso);
