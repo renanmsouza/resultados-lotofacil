@@ -1,14 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { globalDataSouce } from 'src/app.global.datasource';
 import { Repository } from 'typeorm';
 import { Resultados } from './resultados.entity';
 
 @Injectable()
 export class ResultadosService { 
+    private dataSource = globalDataSouce;
+
     constructor(
         @InjectRepository(Resultados)
         private resultadosRepository: Repository<Resultados>
-    ) {}
+    ) {
+        this.dataSource.initialize();
+    }
 
     findAll(): Promise<Resultados[]> {
         return this.resultadosRepository.find();
@@ -28,23 +33,24 @@ export class ResultadosService {
     }
 
     async totalConcursosPorDezena(dezena: number): Promise<number> {
-        let dezenaStr = dezena.toLocaleString('',{minimumIntegerDigits: 2});
-
-        return await this.resultadosRepository
+        let dezenaStr = dezena.toLocaleString('pt-BR',{minimumIntegerDigits: 2});
+        
+        const total = await this.resultadosRepository
             .createQueryBuilder()
-            .where("dezenas like '%:dezena%'", {dezenaStr})
-            .getCount()
+            .where(`dezenas like '%${dezenaStr}%'`)
+            .getCount();
+
+        return total;
     }
 
     async ultimoConcursoDezena(dezena: number): Promise<number> {
-        let dezenaStr = dezena.toLocaleString('',{minimumIntegerDigits: 2});
+        let dezenaStr = dezena.toLocaleString('pt-BR',{minimumIntegerDigits: 2});
 
         const totalConcursos = await this.resultadosRepository
             .createQueryBuilder()
-            .select("concurso")
-            .where("dezenas like '%:dezena%'", {dezenaStr})
+            .where(`dezenas like '%${dezenaStr}%'`)
             .orderBy("concurso", "DESC")
-            .getOne()
+            .getOne();
 
         return totalConcursos.concurso;
     }
@@ -52,4 +58,5 @@ export class ResultadosService {
     async save(resultado: Resultados): Promise<Resultados> {
        return this.resultadosRepository.save(resultado);
     }
+
 }

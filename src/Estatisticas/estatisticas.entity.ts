@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryColumn } from "typeorm";
 
-@Entity()
+@Entity("Estatisticas")
 export class Estatisticas {
     @PrimaryColumn({name: "dezena"})
     private _dezena: number;
@@ -12,6 +12,8 @@ export class Estatisticas {
 	private _ultimoConcurso: number;
     @Column({name: "maiorAusencia"})
 	private _maiorAusencia: number;
+    @Column({name: "maiorPresenca"})
+	private _maiorPresenca: number;
     @Column({name: "probabilidadeProxConcurso"})
 	private _probabilidadeProxConcurso: number;
 
@@ -57,6 +59,14 @@ export class Estatisticas {
 
     public set maiorAusencia(_maiorAusencia: number) {
         this._maiorAusencia = _maiorAusencia;
+    }
+
+    public get maiorPresenca(): number {
+        return this._maiorPresenca;
+    }
+
+    public set maiorPresenca(_maiorPresenca: number) {
+        this._maiorPresenca = _maiorPresenca;
     }
 
     public get probabilidadeProxConcurso(): number {
