@@ -15,24 +15,24 @@ export class ResultadosService {
         this.dataSource.initialize();
     }
 
-    findAll(): Promise<Resultados[]> {
-        return this.resultadosRepository.find();
+    public async findAll(): Promise<Resultados[]> {
+        return await this.resultadosRepository.find();
     }
 
-    async findLast(): Promise<Resultados> {
+    public async findLast(): Promise<Resultados> {
         return await this.resultadosRepository
             .createQueryBuilder()
             .orderBy("concurso", "DESC")
             .getOne();
     }
 
-    async totalConcursos(): Promise<number> {
+    public async totalConcursos(): Promise<number> {
         return await this.resultadosRepository
             .createQueryBuilder()
             .getCount()    
     }
 
-    async totalConcursosPorDezena(dezena: number): Promise<number> {
+    public async totalConcursosPorDezena(dezena: number): Promise<number> {
         let dezenaStr = dezena.toLocaleString('pt-BR',{minimumIntegerDigits: 2});
         
         const total = await this.resultadosRepository
@@ -43,7 +43,7 @@ export class ResultadosService {
         return total;
     }
 
-    async ultimoConcursoDezena(dezena: number): Promise<number> {
+    public async ultimoConcursoDezena(dezena: number): Promise<number> {
         let dezenaStr = dezena.toLocaleString('pt-BR',{minimumIntegerDigits: 2});
 
         const totalConcursos = await this.resultadosRepository
@@ -55,14 +55,7 @@ export class ResultadosService {
         return totalConcursos.concurso;
     }
 
-    // probabilidadeJuntas
-    // probabilidadeSeparadas
-    // ultimoJuntas
-    // ultimoSeparadas
-    // maiorJuncao
-    // maiorSeparacao
-
-    async totalConcursosJuntas(dezena1: number, dezena2: number): Promise<number> {
+    public async totalConcursosJuntas(dezena1: number, dezena2: number): Promise<number> {
         let dezena1Str = dezena1.toLocaleString('pt-BR',{minimumIntegerDigits: 2});
         let dezena2Str = dezena2.toLocaleString('pt-BR',{minimumIntegerDigits: 2});
         
@@ -74,14 +67,14 @@ export class ResultadosService {
         return total;
     }
     
-    async probabilidadeJuntas(dezena1: number, dezena2: number): Promise<number> {
+    public async probabilidadeJuntas(dezena1: number, dezena2: number): Promise<number> {
         const totalConcursos: number = await this.totalConcursos();
         const totalJuntas: number = await this.totalConcursosJuntas(dezena1, dezena2);
 
         return (totalJuntas / totalConcursos) * 100;
     }
 
-    async ultimoConcursoJuntas(dezena1: number, dezena2: number): Promise<number> {
+    public async ultimoConcursoJuntas(dezena1: number, dezena2: number): Promise<number> {
         let dezena1Str = dezena1.toLocaleString('pt-BR',{minimumIntegerDigits: 2});
         let dezena2Str = dezena2.toLocaleString('pt-BR',{minimumIntegerDigits: 2});
 
@@ -94,7 +87,7 @@ export class ResultadosService {
         return ultimoConcurso.concurso;
     }
 
-    async totalConcursosSeparadas(dezena1: number, dezena2: number): Promise<number> {
+    public async totalConcursosSeparadas(dezena1: number, dezena2: number): Promise<number> {
         let dezena1Str = dezena1.toLocaleString('pt-BR',{minimumIntegerDigits: 2});
         let dezena2Str = dezena2.toLocaleString('pt-BR',{minimumIntegerDigits: 2});
         
@@ -107,27 +100,39 @@ export class ResultadosService {
     }
     
 
-    async probabilidadeSeparadas(dezena1: number, dezena2: number): Promise<number> {
+    public async probabilidadeSeparadas(dezena1: number, dezena2: number): Promise<number> {
         const totalConcursos: number = await this.totalConcursos();
         const totalSeparadas: number = await this.totalConcursosSeparadas(dezena1, dezena2);
 
         return (totalSeparadas / totalConcursos) * 100;
     }
 
-    async ultimoConcursoSeparadas(dezena1: number, dezena2: number): Promise<number> {
+    public async ultimoConcursoSeparadas(dezena1: number, dezena2: number): Promise<number> {
         let dezena1Str = dezena1.toLocaleString('pt-BR',{minimumIntegerDigits: 2});
         let dezena2Str = dezena2.toLocaleString('pt-BR',{minimumIntegerDigits: 2});
 
         const ultimoConcurso = await this.resultadosRepository
             .createQueryBuilder()
-            .where(`dezenas not like '%${dezena1Str}%' and not dezenas like '%${dezena2Str}%'`)
+            .where(`dezenas not like '%${dezena1Str}%' and dezenas not like '%${dezena2Str}%'`)
             .orderBy("concurso", "DESC")
             .getOne();
 
         return ultimoConcurso.concurso;
     }
 
-    async save(resultado: Resultados): Promise<Resultados> {
+    public async probabilidadeDezenasJuntas(dezenas: number[]): Promise<number> {
+        let dezenasStr = dezenas.join('|');
+        const totalConcursos = await this.totalConcursos();
+
+        const total = await this.resultadosRepository
+            .createQueryBuilder()
+            .where(`dezenas like '%${dezenasStr}%'`)
+            .getCount();
+        
+        return (total / totalConcursos) * 100
+    }
+
+    public async save(resultado: Resultados): Promise<Resultados> {
        return this.resultadosRepository.save(resultado);
     }
 

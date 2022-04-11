@@ -13,7 +13,22 @@ export class EstatisticasController {
         private estatiscasService: EstatisticasService,
         private resultadosService: ResultadosService,
         private relacaodezenasService: RelacaoDezenasService
-    ) { }
+    ) {}
+
+    @Patch('atualizar')
+    async atualizar(@Res() res: Response): Promise<Response> {
+        try {
+            await this.atualizaEstatisticas(res);
+
+            await this.atualizarRelacaoDezenas(res);
+
+            return res.status(200)
+                .send(new Resposta('OK', 'Atualizado com sucesso', []));
+        } catch (error) {
+            return res.status(500)
+                .send(new Resposta('Erro ao Atualizar', error.toString(), []));
+        }
+    }
 
     @Patch('atualizar_estatisticas')
     async atualizaEstatisticas(@Res() res: Response): Promise<Response> {
@@ -41,47 +56,61 @@ export class EstatisticasController {
                 novaEstatistica.probabilidadeProxConcurso = await this.probabilidadeProxConcurso(novaEstatistica);
                 console.log(novaEstatistica);
                 await this.estatiscasService.save(novaEstatistica);
+
+                return res.status(200)
+                    .send(new Resposta('OK', 'Atualizado com sucesso', []));
+
             } catch (error) {
                 return res.status(500)
                     .send(new Resposta('Erro ao Atualizar', error.toString(), []));
             }
         }
-
-        return res.status(200)
-            .send(new Resposta('OK', 'Atualizado com sucesso', []));
     }
 
     @Patch('atualizar_relacao_dezenas')
-    async atualizarRelacaoDezenas() {
-        for (let i = 1; i <= 25; i++) {
-            for (let j = i + 1; j <= 25; j++) {
-                let dezena = i;
-                let relacionada = j;
+    async atualizarRelacaoDezenas(@Res() res: Response) {
+        try {
+            for (let i = 1; i <= 25; i++) {
+                for (let j = i + 1; j <= 25; j++) {
+                    let dezena = i;
+                    let relacionada = j;
 
-                let novoRelacaoDezenas = new RelacaoDezenas(dezena, relacionada);
+                    let novoRelacaoDezenas = new RelacaoDezenas(dezena, relacionada);
 
-                novoRelacaoDezenas.probabilidadeJuntas =
-                    await this.resultadosService.probabilidadeJuntas(dezena, relacionada);
+                    novoRelacaoDezenas.probabilidadeJuntas =
+                        await this.resultadosService.probabilidadeJuntas(dezena, relacionada);
 
-                novoRelacaoDezenas.probabilidadeSeparadas =
-                    await this.resultadosService.probabilidadeSeparadas(dezena, relacionada);
+                    novoRelacaoDezenas.probabilidadeSeparadas =
+                        await this.resultadosService.probabilidadeSeparadas(dezena, relacionada);
 
-                novoRelacaoDezenas.maiorJuncao =
-                    await this.estatiscasService.maiorJuncao(dezena, relacionada);
+                    novoRelacaoDezenas.maiorJuncao =
+                        await this.estatiscasService.maiorJuncao(dezena, relacionada);
 
-                novoRelacaoDezenas.maiorSeparacao =
-                    await this.estatiscasService.maiorSeparacao(dezena, relacionada);
+                    novoRelacaoDezenas.maiorSeparacao =
+                        await this.estatiscasService.maiorSeparacao(dezena, relacionada);
 
-                novoRelacaoDezenas.ultimoJuntas =
-                    await this.resultadosService.totalConcursosJuntas(dezena, relacionada);
+                    novoRelacaoDezenas.ultimoJuntas =
+                        await this.resultadosService.ultimoConcursoJuntas(dezena, relacionada);
 
-                novoRelacaoDezenas.ultimoSeparadas
-                    await this.resultadosService.ultimoConcursoSeparadas(dezena, relacionada);
+                    novoRelacaoDezenas.ultimoSeparadas =
+                        await this.resultadosService.ultimoConcursoSeparadas(dezena, relacionada);
+
+                    await this.relacaodezenasService.save(novoRelacaoDezenas);
+
+                }
             }
+
+            return res.status(200)
+                    .send(new Resposta('OK', 'Atualizado com sucesso', []));
+
+        } catch (error) {
+            return res.status(500)
+                    .send(new Resposta('Erro ao Atualizar', error.toString(), []));
         }
+
     }
 
-    async probabilidadeProxConcurso(estatistica: Estatisticas) {
+    private async probabilidadeProxConcurso(estatistica: Estatisticas) {
         const ultimoConcurso = await this.resultadosService.findLast();
         const maiorAusencia = await this.estatiscasService.maiorAusencia(estatistica.dezena);
 
