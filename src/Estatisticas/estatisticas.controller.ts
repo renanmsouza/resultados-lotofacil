@@ -1,5 +1,8 @@
-import { Controller, Patch } from '@nestjs/common';
-import e, { response } from 'express';
+import { Controller, Patch, Res } from '@nestjs/common';
+import { Response } from 'express';
+import { Resposta } from 'src/Classes/resposta.class';
+import { RelacaoDezenas } from 'src/RelacaoDezenas/relacaodezenas.entity';
+import { RelacaoDezenasService } from 'src/RelacaoDezenas/relacaodezenas.service';
 import { ResultadosService } from 'src/Resultados/resultados.service';
 import { Estatisticas } from './estatisticas.entity';
 import { EstatisticasService } from './estatisticas.service';
@@ -8,27 +11,28 @@ import { EstatisticasService } from './estatisticas.service';
 export class EstatisticasController {
     constructor(
         private estatiscasService: EstatisticasService,
-        private resultadosService: ResultadosService
+        private resultadosService: ResultadosService,
+        private relacaodezenasService: RelacaoDezenasService
     ) { }
 
-    @Patch('atualizar')
-    async atualizaEstatisticas(): Promise<string> {
+    @Patch('atualizar_estatisticas')
+    async atualizaEstatisticas(@Res() res: Response): Promise<Response> {
         for (let i = 1; i <= 25; i++) {
             var novaEstatistica = new Estatisticas(i);
 
             try {
                 // totalConcursos
                 novaEstatistica.totalConcursos = await this.resultadosService.totalConcursosPorDezena(i);
-                
+
                 // probabilidadeTotal
                 novaEstatistica.probabilidadeTotal = (
                     novaEstatistica.totalConcursos /
                     await this.resultadosService.totalConcursos()
                 ) * 100;
-                
+
                 // ultimoConcurso
                 novaEstatistica.ultimoConcurso = await this.resultadosService.ultimoConcursoDezena(i);
-                
+
                 // maiorAusencia
                 novaEstatistica.maiorAusencia = await this.estatiscasService.maiorAusencia(i);
                 // maiorPresenca
@@ -38,11 +42,43 @@ export class EstatisticasController {
                 console.log(novaEstatistica);
                 await this.estatiscasService.save(novaEstatistica);
             } catch (error) {
-                return 'Erro: ' + error; 
+                return res.status(500)
+                    .send(new Resposta('Erro ao Atualizar', error.toString(), []));
             }
         }
 
-        return 'Atualizado com sucesso'
+        return res.status(200)
+            .send(new Resposta('OK', 'Atualizado com sucesso', []));
+    }
+
+    @Patch('atualizar_relacao_dezenas')
+    async atualizarRelacaoDezenas() {
+        for (let i = 1; i <= 25; i++) {
+            for (let j = i + 1; j <= 25; j++) {
+                let dezena = i;
+                let relacionada = j;
+
+                let novoRelacaoDezenas = new RelacaoDezenas(dezena, relacionada);
+
+                novoRelacaoDezenas.probabilidadeJuntas =
+                    await this.resultadosService.probabilidadeJuntas(dezena, relacionada);
+
+                novoRelacaoDezenas.probabilidadeSeparadas =
+                    await this.resultadosService.probabilidadeSeparadas(dezena, relacionada);
+
+                novoRelacaoDezenas.maiorJuncao =
+                    await this.estatiscasService.maiorJuncao(dezena, relacionada);
+
+                novoRelacaoDezenas.maiorSeparacao =
+                    await this.estatiscasService.maiorSeparacao(dezena, relacionada);
+
+                novoRelacaoDezenas.ultimoJuntas =
+                    await this.resultadosService.totalConcursosJuntas(dezena, relacionada);
+
+                novoRelacaoDezenas.ultimoSeparadas
+                    await this.resultadosService.ultimoConcursoSeparadas(dezena, relacionada);
+            }
+        }
     }
 
     async probabilidadeProxConcurso(estatistica: Estatisticas) {

@@ -17,7 +17,9 @@ export class LotofacilApiService {
     }
 
     async findOne(concurso: number): Promise<LotofacilInterface> {
-        const response = await lastValueFrom(this.httpService.get(this.url + `api/lotofacil/${concurso}`));
+        console.log(`api/lotofacil/${concurso}`);
+        const response = await lastValueFrom(this.httpService.get(this.url + `lotofacil/${concurso}`));
+        
         return response.data as LotofacilInterface;
     }
 

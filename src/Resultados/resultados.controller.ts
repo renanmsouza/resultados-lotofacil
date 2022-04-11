@@ -1,4 +1,6 @@
-import { Controller, Get, Patch } from '@nestjs/common';
+import { Controller, Get, Patch, Res } from '@nestjs/common';
+import { Response } from 'express';
+import { Resposta } from 'src/Classes/resposta.class';
 import { LotofacilApiService } from 'src/LotofacilApi/lotofacilapi.service';
 import { Resultados } from './resultados.entity';
 import { ResultadosService } from './resultados.service';
@@ -7,21 +9,27 @@ import { ResultadosService } from './resultados.service';
 export class ResultadosController {
     constructor(
         private readonly resultadosService: ResultadosService,
-        private readonly lotofacilService: LotofacilApiService
-    ) { }
+        private readonly lotofacilService: LotofacilApiService,
+    ) {}
 
     @Get()
-    public hellow(): string {
-        return 'Controlador Resultados'
+    public hellow(@Res() res: Response): Response {
+        return res.status(200).send(new Resposta('Hellow', 'Controlador de Resultados'));
     }
 
     @Get('todos')
-    public async findAll(): Promise<Resultados[]> {
-        return this.resultadosService.findAll();
+    public async findAll(@Res() res: Response): Promise<Response> {
+        try {
+            return res.status(200)
+                .send(new Resposta('Sucesso', 'Todos os Resultados', await this.resultadosService.findAll()));    
+        } catch (error) {
+            return res.status(500)
+                .send(new Resposta('Falha ao obter os dados', error.toString(), []));    
+        }
     }
 
     @Patch('atualizar')
-    public async atualizar(): Promise<string> {
+    public async atualizar(@Res() res: Response): Promise<Response> {
         try {
             var concurso: number = 0;
             const ultimoGravado = await this.resultadosService.findLast();
@@ -36,7 +44,7 @@ export class ResultadosController {
 
                 while (proximoConcurso < ultimoConcurso) {
                     let novoConcurso = await this.lotofacilService.findOne(proximoConcurso);
-                    
+                       
                     const novoResultado = new Resultados(
                         novoConcurso.concurso,
                         this.converteData(novoConcurso.data),
@@ -50,10 +58,10 @@ export class ResultadosController {
             }
 
         } catch (error) {
-            return 'Deu Erro: ' + error.toString();    
+            return res.status(500).send(new Resposta('Falha ao atualizar', error.toString(), []));    
         }
 
-        return 'Atualizado com sucesso!!';
+        return res.status(200).send(new Resposta('OK', 'Atualizado com sucesso', []));;
     }
 
     private converteData(dataBrl: string): Date {
