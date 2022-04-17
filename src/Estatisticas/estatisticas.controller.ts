@@ -1,4 +1,4 @@
-import { Controller, Patch, Res } from '@nestjs/common';
+import { Controller, Get, Patch, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { Resposta } from 'src/Classes/resposta.class';
 import { RelacaoDezenas } from 'src/RelacaoDezenas/relacaodezenas.entity';
@@ -13,7 +13,18 @@ export class EstatisticasController {
         private estatiscasService: EstatisticasService,
         private resultadosService: ResultadosService,
         private relacaodezenasService: RelacaoDezenasService
-    ) {}
+    ) { }
+
+    @Get('todos')
+    public async findAll(@Res() res: Response): Promise<Response> {
+        try {
+            return res.status(200)
+                .send(new Resposta('Sucesso', 'Todos os Resultados', await this.estatiscasService.findAll()));
+        } catch (error) {
+            return res.status(500)
+                .send(new Resposta('Falha ao obter os dados', error.toString(), [error]));
+        }
+    }
 
     @Patch('atualizar')
     async atualizar(@Res() res: Response): Promise<Response> {
@@ -54,17 +65,19 @@ export class EstatisticasController {
                 novaEstatistica.maiorPresenca = await this.estatiscasService.maiorPresenca(i);
                 // probabilidadeProxConcurso
                 novaEstatistica.probabilidadeProxConcurso = await this.probabilidadeProxConcurso(novaEstatistica);
-                console.log(novaEstatistica);
-                await this.estatiscasService.save(novaEstatistica);
+                // improbabilidadeProxConcurso
+                novaEstatistica.improbabilidadeProxConcurso = await this.improbabilidadeProxConcurso(novaEstatistica);
 
-                return res.status(200)
-                    .send(new Resposta('OK', 'Atualizado com sucesso', []));
+                await this.estatiscasService.save(novaEstatistica);
 
             } catch (error) {
                 return res.status(500)
                     .send(new Resposta('Erro ao Atualizar', error.toString(), []));
             }
         }
+
+        return res.status(200)
+            .send(new Resposta('OK', 'Atualizado com sucesso', []));
     }
 
     @Patch('atualizar_relacao_dezenas')
@@ -101,11 +114,11 @@ export class EstatisticasController {
             }
 
             return res.status(200)
-                    .send(new Resposta('OK', 'Atualizado com sucesso', []));
+                .send(new Resposta('OK', 'Atualizado com sucesso', []));
 
         } catch (error) {
             return res.status(500)
-                    .send(new Resposta('Erro ao Atualizar', error.toString(), []));
+                .send(new Resposta('Erro ao Atualizar', error.toString(), []));
         }
 
     }
@@ -118,5 +131,13 @@ export class EstatisticasController {
 
 
         return (ausenciaAtual / maiorAusencia) * 100;
+    }
+
+    private async improbabilidadeProxConcurso(estatistica: Estatisticas) {
+        const maiorPresenca = await this.estatiscasService.maiorPresenca(estatistica.dezena);
+        
+        const presencaAtual = await this.resultadosService.qtdeUltimosJogosPresentes(estatistica.dezena);
+
+        return (presencaAtual / maiorPresenca) * 100;
     }
 }

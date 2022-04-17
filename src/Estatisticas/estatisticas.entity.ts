@@ -16,6 +16,8 @@ export class Estatisticas {
 	private _maiorPresenca: number;
     @Column({name: "probabilidadeProxConcurso"})
 	private _probabilidadeProxConcurso: number;
+    @Column({name: "improbabilidadeProxConcurso"})
+	private _improbabilidadeProxConcurso: number;
 
     constructor(dezena: number) {
         this._dezena = dezena;
@@ -76,5 +78,13 @@ export class Estatisticas {
     public set probabilidadeProxConcurso(_probabilidadeProxConcurso: number) {
         this._probabilidadeProxConcurso = _probabilidadeProxConcurso;
     }
+
+    public get improbabilidadeProxConcurso(): number {
+        return this._improbabilidadeProxConcurso;
+    }
+
+    public set improbabilidadeProxConcurso(_improbabilidadeProxConcurso: number) {
+        this._improbabilidadeProxConcurso = _improbabilidadeProxConcurso;
+    }   
 
 }

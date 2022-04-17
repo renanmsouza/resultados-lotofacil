@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Any, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Estatisticas } from './estatisticas.entity';
 
 @Injectable()
@@ -11,19 +11,19 @@ export class EstatisticasService {
         private estatisticasRepository: Repository<Estatisticas>
     ) {}
 
-    async findAll(): Promise<Estatisticas[]> {
+    public async findAll(): Promise<Estatisticas[]> {
         return await this.estatisticasRepository.find();
     }
 
-    async findByOne(dezena: number): Promise<Estatisticas> {
+    public async findByOne(dezena: number): Promise<Estatisticas> {
         return await this.estatisticasRepository.findOneBy({ dezena: dezena });
     }
 
-    async save(estatistica: Estatisticas): Promise<Estatisticas> {
+    public async save(estatistica: Estatisticas): Promise<Estatisticas> {
         return await this.estatisticasRepository.save(estatistica);
     }
 
-    async maiorAusencia(dezena: number): Promise<number> {
+    public async maiorAusencia(dezena: number): Promise<number> {
         let dezenaStr = dezena.toLocaleString('pt-BR', { minimumIntegerDigits: 2 });
 
         const [{ MaiorAusencia }] = await this.estatisticasRepository
@@ -32,7 +32,7 @@ export class EstatisticasService {
         return MaiorAusencia;
     }
 
-    async maiorPresenca(dezena: number): Promise<number> {
+    public async maiorPresenca(dezena: number): Promise<number> {
         let dezenaStr = dezena.toLocaleString('pt-BR', { minimumIntegerDigits: 2 });
 
         const [{ MaiorPresenca }] = await this.estatisticasRepository
@@ -41,7 +41,7 @@ export class EstatisticasService {
         return MaiorPresenca;
     }
 
-    async maiorSeparacao(dezena1: number, dezena2: number): Promise<number> {
+    public async maiorSeparacao(dezena1: number, dezena2: number): Promise<number> {
         let dezena1Str = dezena1.toLocaleString('pt-BR', { minimumIntegerDigits: 2 });
         let dezena2Str = dezena2.toLocaleString('pt-BR', { minimumIntegerDigits: 2 });
 
@@ -51,7 +51,7 @@ export class EstatisticasService {
         return MaiorSeparacao;
     }
 
-    async maiorJuncao(dezena1: number, dezena2: number): Promise<number> {
+    public async maiorJuncao(dezena1: number, dezena2: number): Promise<number> {
         let dezena1Str = dezena1.toLocaleString('pt-BR', { minimumIntegerDigits: 2 });
         let dezena2Str = dezena2.toLocaleString('pt-BR', { minimumIntegerDigits: 2 });
 

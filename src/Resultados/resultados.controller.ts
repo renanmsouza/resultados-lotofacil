@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Res } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { Resposta } from 'src/Classes/resposta.class';
 import { LotofacilApiService } from 'src/LotofacilApi/lotofacilapi.service';
@@ -24,7 +24,18 @@ export class ResultadosController {
                 .send(new Resposta('Sucesso', 'Todos os Resultados', await this.resultadosService.findAll()));    
         } catch (error) {
             return res.status(500)
-                .send(new Resposta('Falha ao obter os dados', error.toString(), []));    
+                .send(new Resposta('Falha ao obter os dados', error.toString(), [error]));    
+        }
+    }
+
+    @Get('ultimo_concurso')
+    public async findLast(@Res() res: Response): Promise<Response> {
+        try {
+            return res.status(200)
+                .send(new Resposta('Sucesso', 'Todos os Resultados', [await this.resultadosService.findLast()]));    
+        } catch (error) {
+            return res.status(500)
+                .send(new Resposta('Falha ao obter os dados', error.toString(), [error]));    
         }
     }
 
@@ -57,11 +68,50 @@ export class ResultadosController {
                 }
             }
 
+            return res.status(200).send(new Resposta('OK', 'Atualizado com sucesso', []));
+
         } catch (error) {
-            return res.status(500).send(new Resposta('Falha ao atualizar', error.toString(), []));    
+            return res.status(500).send(new Resposta('Falha ao atualizar', error.toString(), [error]));    
         }
 
-        return res.status(200).send(new Resposta('OK', 'Atualizado com sucesso', []));;
+        
+    }
+
+    @Get('probabilidade_dezenas_juntas')
+    public async probabilidadeDezenasJuntas(@Res() res: Response, @Body() dezenas: string[]): Promise<Response> {
+        try {
+            let probabilidade = await this.resultadosService.probabilidadeDezenasJuntas(dezenas); 
+            
+            return res.status(200).send(new Resposta('OK', 'Calculado com sucesso', [probabilidade]));
+        } catch (error) {
+            return res.status(500).send(new Resposta('Falha ao calcular a probabilidade', error.toString(), [error]));      
+        }
+    }
+
+    @Get('testar_jogo')
+    public async testarJogo(@Res() res: Response, @Body() dezenas: string[]): Promise<Response> {
+        try {
+            let jogoExiste = await this.resultadosService.testarJogo(dezenas);
+
+            if (jogoExiste) {
+                return res.status(200).send(new Resposta('OK', 'Aposta já foi sorteada!', [jogoExiste])); 
+            } else {
+                return res.status(200).send(new Resposta('OK', 'Aposta não foi sorteada!', [jogoExiste]));
+            }
+        } catch (error) {
+            return res.status(500).send(new Resposta('Falha ao encontrar a aposta', error.toString(), [error]));    
+        }
+    }
+
+    @Get('melhores_dezenas')
+    public async melhoreDezenasPara(@Res() res: Response, @Body() dezenas: string[]): Promise<Response> {
+        try {
+            return res.status(200)
+                .send(new Resposta('Sucesso', 'Todos os Resultados', await this.resultadosService.melhoresDezenasPara(dezenas)));    
+        } catch (error) {
+            return res.status(500)
+                .send(new Resposta('Falha ao obter os dados', error.toString(), [error]));    
+        }
     }
 
     private converteData(dataBrl: string): Date {

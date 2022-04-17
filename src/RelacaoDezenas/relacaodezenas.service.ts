@@ -1,7 +1,5 @@
 import { Injectable, Res } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { Response } from "express";
-import { Resposta } from "src/Classes/resposta.class";
 import { Repository } from "typeorm";
 import { RelacaoDezenas } from "./relacaodezenas.entity";
 
@@ -12,11 +10,23 @@ export class RelacaoDezenasService {
         private relacaoDezenasRepository: Repository<RelacaoDezenas>
     ) {}
 
+    public findAll(): Promise<RelacaoDezenas[]> {
+        return this.relacaoDezenasRepository.find();
+    }
+
     public findOne(dezena: number, relacionada: number): Promise<RelacaoDezenas> {
         return this.relacaoDezenasRepository.findOneBy({
             dezena: dezena, 
             relacionada: relacionada
         });
+    }
+
+    public findRelacoes(dezena: number): Promise<RelacaoDezenas[]> {
+        let dezenaStr = dezena.toLocaleString('pt-BR', { minimumIntegerDigits: 2 });
+
+        return this.relacaoDezenasRepository.createQueryBuilder()
+            .where(`dezena = ${dezenaStr} or relacionada = ${dezenaStr}`)
+            .getMany()
     }
 
     public findByDezena(dezena: number): Promise<RelacaoDezenas[]> {
