@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { lastValueFrom } from 'rxjs';
-import { LotofacilInterface } from 'src/interfaces/lotofacil.interface';
+import { LotofacilInterface } from 'src/Interfaces/lotofacil.interface';
 
 @Injectable()
 export class LotofacilApiService {
