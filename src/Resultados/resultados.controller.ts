@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Patch, Res } from '@nestjs/common';
-import { Response } from 'express';
+import { Body, Controller, Get, Patch, Post, Req, Res } from '@nestjs/common';
+import { Response, Request } from 'express';
 import { Resposta } from 'src/Classes/resposta.class';
 import { LotofacilApiService } from 'src/LotofacilApi/lotofacilapi.service';
 import { Resultados } from './resultados.entity';
@@ -33,6 +33,27 @@ export class ResultadosController {
         try {
             return res.status(200)
                 .send(new Resposta('Sucesso', 'Todos os Resultados', [await this.resultadosService.findLast()]));    
+        } catch (error) {
+            return res.status(500)
+                .send(new Resposta('Falha ao obter os dados', error.toString(), [error]));    
+        }
+    }
+
+    @Post('salvar')
+    public async salvar(@Req() req: Request, @Res() res: Response): Promise<Response> {
+        try {
+            const data: Resultados = req.body as Resultados;
+
+            const novoResultado = new Resultados(
+                data.concurso,
+                data.data,
+                data.dezenas
+            );
+
+            await this.resultadosService.save(novoResultado);
+
+            return res.status(200)
+                .send(new Resposta('Sucesso', 'Resultado Salvo', [data]));    
         } catch (error) {
             return res.status(500)
                 .send(new Resposta('Falha ao obter os dados', error.toString(), [error]));    
