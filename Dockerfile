@@ -1,12 +1,18 @@
 FROM node:lts-alpine
-ENV NODE_ENV=production
-WORKDIR /usr/src/app
-COPY ["package.json", "package-lock.json*", "npm-shrinkwrap.json*", "./"]
+RUN mkdir -p /home/node/app/node_modules
+WORKDIR /home/node/app
+
+COPY *.json ./
+COPY src ./src
+
 RUN npm install -g typescript
 RUN npm install -g ts-node
-RUN npm install --production --silent && mv node_modules ../
-COPY . .
+RUN npm install -g @nestjs/cli
+RUN npm install
+
+RUN nest build
+COPY dist ./dist
+
 EXPOSE 3000
-RUN chown -R node /usr/src/app
-USER node
-CMD ["npm", "start"]
+
+CMD ["npm","run","start:prod"]
