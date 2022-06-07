@@ -1,11 +1,17 @@
 import { Controller, Get, Patch, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { Resposta } from 'src/Classes/resposta.class';
+import { dezenaValor } from 'src/Interfaces/dezena-valor.interface';
 import { RelacaoDezenas } from 'src/RelacaoDezenas/relacaodezenas.entity';
 import { RelacaoDezenasService } from 'src/RelacaoDezenas/relacaodezenas.service';
 import { ResultadosService } from 'src/Resultados/resultados.service';
 import { Estatisticas } from './estatisticas.entity';
 import { EstatisticasService } from './estatisticas.service';
+
+interface dezenasProximoJogo {
+    novasDezenas?: dezenaValor[],
+    repetidas?: dezenaValor[]
+}
 
 @Controller('estatisticas')
 export class EstatisticasController {
@@ -26,8 +32,24 @@ export class EstatisticasController {
         }
     }
 
+    @Get('dezenas_proximo_jogo')
+    public async dezenasProximoJogo(@Res() res: Response): Promise<Response> {
+        try {
+            let resultado = {novasDezenas: [], repetidas: []};
+
+            resultado.novasDezenas = await this.estatiscasService.listaDezenasPorProbabilidade();
+            resultado.repetidas = await this.estatiscasService.listaDezenasPorImprobabilidade();
+            
+            return res.status(200)
+                .send(new Resposta('Sucesso', 'Todos os Resultados', [resultado]));
+        } catch (error) {
+            return res.status(500)
+                .send(new Resposta('Falha ao obter os dados', error.toString(), [error]));
+        }
+    }
+
     @Patch('atualizar')
-    async atualizar(@Res() res: Response): Promise<Response> {
+    public async atualizar(@Res() res: Response): Promise<Response> {
         try {
             await this.atualizaEstatisticas(res);
 
@@ -42,7 +64,7 @@ export class EstatisticasController {
     }
 
     @Patch('atualizar_estatisticas')
-    async atualizaEstatisticas(@Res() res: Response): Promise<Response> {
+    public async atualizaEstatisticas(@Res() res: Response): Promise<Response> {
         for (let i = 1; i <= 25; i++) {
             var novaEstatistica = new Estatisticas(i);
 
@@ -81,7 +103,7 @@ export class EstatisticasController {
     }
 
     @Patch('atualizar_relacao_dezenas')
-    async atualizarRelacaoDezenas(@Res() res: Response) {
+    public async atualizarRelacaoDezenas(@Res() res: Response) {
         try {
             for (let i = 1; i <= 25; i++) {
                 for (let j = i + 1; j <= 25; j++) {

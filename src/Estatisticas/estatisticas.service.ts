@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { dezenaValor } from 'src/Interfaces/dezena-valor.interface';
 import { Repository } from 'typeorm';
 import { Estatisticas } from './estatisticas.entity';
 
@@ -60,4 +61,22 @@ export class EstatisticasService {
 
         return MaiorJuncao;
     }
+
+    public async listaDezenasPorProbabilidade(): Promise<dezenaValor[]> {
+        const resultado = await this.estatisticasRepository
+            .query('SELECT dezena, probabilidadeProxConcurso valor FROM Estatisticas'
+                +' WHERE probabilidadeProxConcurso > 0'
+                +' ORDER BY probabilidadeProxConcurso DESC') as dezenaValor[];
+        
+        return resultado;
+    } 
+
+    public async listaDezenasPorImprobabilidade(): Promise<dezenaValor[]> {
+        const resultado = await this.estatisticasRepository
+            .query('SELECT dezena, improbabilidadeProxConcurso valor FROM Estatisticas'
+                +' WHERE improbabilidadeProxConcurso > 0'
+                +' ORDER BY improbabilidadeProxConcurso') as dezenaValor[];
+        
+        return resultado;
+    } 
 }
